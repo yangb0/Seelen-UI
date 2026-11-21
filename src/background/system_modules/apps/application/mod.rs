@@ -2,6 +2,7 @@
 mod windows;
 
 use std::{
+    collections::HashMap,
     sync::LazyLock,
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -12,7 +13,7 @@ use crate::{
     error::{Result, ResultLogExt},
     event_manager,
     platform::window::Window,
-    utils::lock_free::SyncVec,
+    utils::lock_free::{SyncVec, TracedMutex},
 };
 
 use super::domain::{AppsSysEvent, AppsSystem, UserAppWinEvent, WindowChange};
@@ -24,6 +25,9 @@ pub struct UserAppsManager {
     platform: Platform,
     /// The windows the user can interact with.
     pub interactable_windows: SyncVec<UserAppWindow>,
+    /// Snapshots of windows that requested attention while hidden (e.g. chat apps minimized
+    /// to the tray). Flash events for them would otherwise be dropped with the tracking entry.
+    hidden_attention: TracedMutex<HashMap<isize, UserAppWindow>>,
 }
 
 event_manager!(UserAppsManager, UserAppWinEvent);
@@ -42,6 +46,7 @@ impl UserAppsManager {
         Self {
             platform: Platform::create(),
             interactable_windows: SyncVec::new(),
+            hidden_attention: TracedMutex::new(HashMap::new()),
         }
     }
 
@@ -76,8 +81,18 @@ impl UserAppsManager {
     /// Single locked check-and-insert, so a window reported twice is not duplicated.
     fn add_window(&self, mut window: UserAppWindow) {
         let hwnd = window.hwnd;
-        if self.platform.is_focused(hwnd) {
+        let focused = self.platform.is_focused(hwnd);
+        if focused {
             window.last_foreground_at = now_millis();
+        }
+        // The window is tracked again (shown): adopt the attention stashed while it was
+        // hidden, unless it is being added because the user just activated it.
+        let stashed = self.hidden_attention.lock().remove(&hwnd);
+        if !focused
+            && window.attention == WindowAttention::None
+            && let Some(stashed) = stashed
+        {
+            window.attention = stashed.attention;
         }
         let inserted = self
             .interactable_windows
@@ -89,27 +104,76 @@ impl UserAppsManager {
 
     fn remove_window(&self, hwnd: isize) {
         let mut removed = false;
+        let mut stashed: Option<UserAppWindow> = None;
         self.interactable_windows.retain(|w| {
             let keep = w.hwnd != hwnd;
-            removed |= !keep;
+            if !keep {
+                removed = true;
+                if w.attention != WindowAttention::None {
+                    stashed = Some(w.clone());
+                }
+            }
             keep
         });
+        // hidden (still a live window) keeps the attention alive in the side table;
+        // destroyed drops any stale entry.
+        let attention_changed = {
+            let mut hidden = self.hidden_attention.lock();
+            match stashed {
+                Some(window) if Window::from(hwnd).is_window() => {
+                    hidden.insert(hwnd, window);
+                    true
+                }
+                Some(_) | None => hidden.remove(&hwnd).is_some(),
+            }
+        };
         if removed {
             Self::send(UserAppWinEvent::Removed(hwnd));
+        }
+        if attention_changed {
+            Self::send(UserAppWinEvent::Updated(hwnd));
         }
     }
 
     fn apply_change(&self, hwnd: isize, change: WindowChange) {
+        let mut found = false;
         let mut changed = false;
         // The foreground change clears the attention while holding this same lock, so the
         // attention checks below can not race with the window being activated.
         self.interactable_windows.for_each(|data| {
             if data.hwnd == hwnd {
+                found = true;
                 changed = self.update_window_data(data, change.clone());
             }
         });
-        if changed {
-            Self::send(UserAppWinEvent::Updated(hwnd));
+        if found {
+            if changed {
+                Self::send(UserAppWinEvent::Updated(hwnd));
+            }
+            return;
+        }
+        // Flash of a window that is not tracked (hidden to the tray, or created while
+        // Seelen was not watching): keep it in the side table so the attention survives.
+        if let WindowChange::Attention { attention } = change {
+            let updated = {
+                let mut hidden = self.hidden_attention.lock();
+                if attention == WindowAttention::None {
+                    hidden.remove(&hwnd).is_some()
+                } else {
+                    let window = Window::from(hwnd);
+                    if window.is_window() {
+                        let mut snapshot = window.snapshot();
+                        snapshot.attention = attention;
+                        hidden.insert(hwnd, snapshot);
+                        true
+                    } else {
+                        false
+                    }
+                }
+            };
+            if updated {
+                Self::send(UserAppWinEvent::Updated(hwnd));
+            }
         }
     }
 
@@ -196,6 +260,23 @@ impl UserAppsManager {
 
     pub fn focused_app(&self) -> FocusedApp {
         self.platform.focused_app()
+    }
+
+    /// Every window (tracked or hidden) currently requesting the user's attention.
+    pub fn attention_windows(&self) -> Vec<UserAppWindow> {
+        let mut list: Vec<UserAppWindow> = self
+            .interactable_windows
+            .to_vec()
+            .into_iter()
+            .filter(|w| w.attention != WindowAttention::None)
+            .collect();
+        let mut hidden = self.hidden_attention.lock();
+        hidden.retain(|hwnd, w| {
+            w.attention != WindowAttention::None && Window::from(*hwnd).is_window()
+        });
+        list.extend(hidden.values().cloned());
+        drop(hidden);
+        list
     }
 
     pub fn mouse_position(&self) -> [i32; 2] {

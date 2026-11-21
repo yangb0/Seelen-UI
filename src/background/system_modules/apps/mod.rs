@@ -27,9 +27,14 @@ fn get_manager() -> &'static UserAppsManager {
     static REGISTER: Once = Once::new();
     REGISTER.call_once(|| {
         UserAppsManager::subscribe(|_event| {
+            let manager = UserAppsManager::instance();
             emit_to_webviews(
                 SeelenEvent::UserAppWindowsChanged,
-                UserAppsManager::instance().interactable_windows.to_vec(),
+                manager.interactable_windows.to_vec(),
+            );
+            emit_to_webviews(
+                SeelenEvent::AppAttentionWindowsChanged,
+                manager.attention_windows(),
             );
         });
 
@@ -101,6 +106,10 @@ impl crate::tauri_handlers::Handlers {
 
     pub fn get_user_app_windows() -> Vec<UserAppWindow> {
         get_manager().interactable_windows.to_vec()
+    }
+
+    pub fn get_app_attention_windows() -> Vec<UserAppWindow> {
+        get_manager().attention_windows()
     }
 
     pub fn get_user_app_windows_previews() -> HashMap<isize, UserAppWindowPreview> {

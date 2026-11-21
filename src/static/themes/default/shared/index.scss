@@ -35,6 +35,16 @@
   --slu-std-ui-selected-overlay: oklch(from var(--system-accent-color) l c h / 0.1);
 }
 
+// attention pulse for plugin items; without these keyframes the inline attention background stays static
+@keyframes slu-attention-flash {
+  from {
+    background-color: transparent;
+  }
+  to {
+    background-color: var(--slu-std-ui-pressed-overlay);
+  }
+}
+
 // default hide/show widget animations.
 :root {
   opacity: 1;

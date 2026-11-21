@@ -224,6 +224,12 @@ impl KnownWindows {
                 WindowBadges::instance().remove(window.address());
                 if is_interactable {
                     self.drop_window(&window, on_event);
+                } else {
+                    // Hidden windows are not known here, but the manager may still hold an
+                    // attention snapshot of them: report the death so it gets dropped.
+                    on_event(AppsSysEvent::Removed {
+                        hwnd: window.address(),
+                    });
                 }
             }
             _ => {}

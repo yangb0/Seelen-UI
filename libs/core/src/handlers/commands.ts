@@ -94,6 +94,7 @@ export enum SeelenCommand {
   GetUserAppWindows = "get_user_app_windows",
   GetUserAppWindowsPreviews = "get_user_app_windows_previews",
   GetUserAppWindowsColors = "get_user_app_windows_colors",
+  GetAppAttentionWindows = "get_app_attention_windows",
   UpdateWindowPreviews = "update_window_previews",
   ClearWindowPreviews = "clear_window_previews",
   GetMediaDevices = "get_media_devices",

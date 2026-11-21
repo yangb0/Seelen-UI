@@ -1,0 +1,10 @@
+id: "@seelen/tb-app-attention"
+metadata:
+  displayName: !extend i18n/display_name.yml
+  description: !extend i18n/description.yml
+icon: MdNotificationsActive
+target: "@seelen/fancy-toolbar"
+plugin:
+  scopes:
+    - AttentionWindows
+  template: !include plugin/template.js

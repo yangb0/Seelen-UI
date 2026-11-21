@@ -36,6 +36,11 @@ impl crate::tauri_handlers::Handlers {
         // on click the items makes the dock being focused.
         if was_focused {
             window.set_state_async(WindowState::Minimized)?;
+        } else if !window.is_visible() {
+            // Tray-hidden windows (SW_HIDE) are not minimized: unminimize would be a
+            // no-op and SetForegroundWindow fails on invisible windows, so show it first.
+            window.set_state(WindowState::Shown)?;
+            window.focus()?;
         } else {
             window.unminimize()?;
             window.focus()?;

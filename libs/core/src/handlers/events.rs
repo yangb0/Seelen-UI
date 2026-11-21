@@ -79,6 +79,7 @@ slu_events_declaration! {
     UserAppWindowsChanged(Vec<UserAppWindow>) as "user::windows-changed",
     UserAppWindowsPreviewsChanged(HashMap<isize, UserAppWindowPreview>) as "user::windows-previews-changed",
     UserAppWindowsColorsChanged(HashMap<isize, UserAppWindowColors>) as "user::windows-colors-changed",
+    AppAttentionWindowsChanged(Vec<UserAppWindow>) as "user::attention-windows-changed",
 
     MediaSessions(Vec<MediaPlayer>) as "media-sessions",
     MediaDevices([Vec<MediaDevice>; 2]) as "media::devices",

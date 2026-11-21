@@ -12,6 +12,7 @@ const ALLOWED_COMMANDS = [
   SeelenCommand.MediaNext,
   SeelenCommand.MediaTogglePlayPause,
   SeelenCommand.SendSystemTrayIconAction,
+  SeelenCommand.WegToggleWindowState,
 ];
 
 const ActionsScope = {

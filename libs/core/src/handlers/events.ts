@@ -11,6 +11,7 @@ export enum SeelenEvent {
   UserAppWindowsChanged = "user::windows-changed",
   UserAppWindowsPreviewsChanged = "user::windows-previews-changed",
   UserAppWindowsColorsChanged = "user::windows-colors-changed",
+  AppAttentionWindowsChanged = "user::attention-windows-changed",
   MediaSessions = "media-sessions",
   MediaDevices = "media::devices",
   MediaInputs = "media-inputs",
