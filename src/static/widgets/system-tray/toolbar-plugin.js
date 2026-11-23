@@ -4,6 +4,14 @@ const GUIDS_TO_IGNORE = [
   "7820ae75-23e3-4229-82c1-e41cb67d5b9c", // battery icon
 ];
 
+const FLASH_STYLE = {
+  padding: "2px",
+  "border-radius": "var(--radius-m)",
+  animation: "slu-attention-flash 0.5s ease-in-out infinite alternate",
+};
+
+const attentionPaths = attentionWindows.map((w) => (w.process.path || "").toLowerCase());
+
 const items = trayIcons
   .filter((icon) => icon.isVisible && icon.isPromoted && !GUIDS_TO_IGNORE.includes(icon.guid))
   .map((icon) => {
@@ -22,7 +30,10 @@ const items = trayIcons
         action: "RightClick",
       })`;
 
+    const flashing = attentionPaths.indexOf((icon.executablePath || "").toLowerCase()) !== -1;
+
     return Button({
+      style: flashing ? FLASH_STYLE : undefined,
       tooltip: icon.tooltip,
       onClick,
       onAuxClick,

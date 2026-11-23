@@ -7,4 +7,5 @@ target: "@seelen/fancy-toolbar"
 plugin:
   scopes:
     - Tray
+    - AttentionWindows
   template: !include toolbar-plugin.js
