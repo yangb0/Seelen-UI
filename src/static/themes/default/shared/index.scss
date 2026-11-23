@@ -39,9 +39,11 @@
 @keyframes slu-attention-flash {
   from {
     background-color: transparent;
+    box-shadow: 0 0 0 0 transparent;
   }
   to {
     background-color: var(--slu-std-ui-pressed-overlay);
+    box-shadow: 0 0 0 2px var(--system-accent-color);
   }
 }
 
