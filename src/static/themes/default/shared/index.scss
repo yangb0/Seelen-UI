@@ -43,7 +43,9 @@
   }
   to {
     background-color: var(--slu-std-ui-pressed-overlay);
-    box-shadow: 0 0 0 2px var(--system-accent-color);
+    box-shadow:
+      0 0 0 2px var(--system-accent-color),
+      0 0 12px 4px var(--slu-std-ui-hover-overlay);
   }
 }
 

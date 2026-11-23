@@ -5,7 +5,8 @@ const GUIDS_TO_IGNORE = [
 ];
 
 const FLASH_STYLE = {
-  padding: "2px",
+  padding: "4px",
+  margin: "-2px",
   "border-radius": "var(--radius-m)",
   animation: "slu-attention-flash 0.5s ease-in-out infinite alternate",
 };
