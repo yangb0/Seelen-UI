@@ -10,7 +10,7 @@ use tauri::Manager;
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
 /// Public key for minisign verification (same as updater)
-const MINISIGN_PUBLIC_KEY: &str = "ZFc1MGNuVnpkR1ZrSUdOdmJXMWxiblE2SUcxcGJtbHphV2R1SUhCMVlteHBZeUJyWlhrNklEQkNNa1U1TURBeFJUUXlSa1ZDUlRVS1VsZFViRFo1TDJ0QldrRjFRelkwZVVGUVNrUnROSGhPTVVOclNGcGpibXQxVFRFMFlreDBVVlp6WXpSc0syeHhOMGRvUlZCc1IzQUs=";
+const MINISIGN_PUBLIC_KEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDBCMkU5MDAxRTQyRkVCRTUKUldUbDZ5L2tBWkF1QzY0eUFQSkRtNHhOMUNrSFpjbmt1TTE0Ykx0UVZzYzRsK2xxN0doRVBsR3AK";
 
 pub async fn ensure_bundle_files_integrity(app: &tauri::AppHandle) -> Result<()> {
     log::trace!("Validating bundle files integrity");
