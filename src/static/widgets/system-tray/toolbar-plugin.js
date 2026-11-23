@@ -11,6 +11,7 @@ const FLASH_STYLE = {
 };
 
 const attentionPaths = attentionWindows.map((w) => (w.process.path || "").toLowerCase());
+const attentionNames = attentionPaths.map((path) => path.split("\\").pop());
 
 const items = trayIcons
   .filter((icon) => icon.isVisible && icon.isPromoted && !GUIDS_TO_IGNORE.includes(icon.guid))
@@ -30,7 +31,8 @@ const items = trayIcons
         action: "RightClick",
       })`;
 
-    const flashing = attentionPaths.indexOf((icon.executablePath || "").toLowerCase()) !== -1;
+    const path = (icon.executablePath || "").toLowerCase();
+    const flashing = attentionPaths.indexOf(path) !== -1 || attentionNames.indexOf(path.split("\\").pop()) !== -1;
 
     return Button({
       style: flashing ? FLASH_STYLE : undefined,
