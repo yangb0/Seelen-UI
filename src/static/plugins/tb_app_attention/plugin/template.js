@@ -1,6 +1,6 @@
-var seen = {};
-var pending = attentionWindows.filter(function (w) {
-  var key = w.umid || w.process.path || String(w.process.id);
+const seen = {};
+const pending = attentionWindows.filter(function (w) {
+  const key = w.umid || w.process.path || String(w.process.id);
   if (seen[key]) return false;
   seen[key] = true;
   return String(w.process.path || w.appName || "").toLowerCase().indexOf("seelen") === -1;
@@ -16,7 +16,6 @@ return pending.map(function (w) {
     },
     content: AppIcon({ path: w.process.path, umid: w.umid }),
     tooltip: w.title || w.appName,
-    onClick:
-      "invoke(SeelenCommand.WegToggleWindowState, { hwnd: " + w.hwnd + ", wasFocused: false })",
+    onClick: "invoke(SeelenCommand.WegToggleWindowState, { hwnd: " + w.hwnd + ", wasFocused: false })",
   });
 });
